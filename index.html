@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Hex Minesweeper — classic Minesweeper on a hexagonal grid" />
+  <title>Hex Minesweeper</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- ── Header ─────────────────────────────────────────────────────── -->
+    <header id="header" role="banner">
+      <div id="controls-row">
+        <!-- Mine counter -->
+        <output
+          id="mine-counter"
+          class="digit-display"
+          aria-label="Mines remaining"
+          aria-live="polite"
+        >007</output>
+
+        <!-- Reset button -->
+        <button
+          id="reset-btn"
+          aria-label="Reset game"
+          title="Reset game"
+        >
+          <span class="face" id="face-neutral"  aria-hidden="true">🙂</span>
+          <span class="face" id="face-surprised" aria-hidden="true">😮</span>
+          <span class="face" id="face-won"       aria-hidden="true">😎</span>
+          <span class="face" id="face-lost"      aria-hidden="true">😵</span>
+        </button>
+
+        <!-- Timer -->
+        <output
+          id="timer"
+          class="digit-display"
+          aria-label="Elapsed time in seconds"
+          aria-live="off"
+        >000</output>
+      </div>
+
+      <!-- Difficulty selector -->
+      <nav id="difficulty-row" aria-label="Difficulty selection">
+        <button class="diff-btn selected" data-difficulty="easy"   aria-pressed="true">Easy</button>
+        <button class="diff-btn"          data-difficulty="medium" aria-pressed="false">Medium</button>
+        <button class="diff-btn"          data-difficulty="hard"   aria-pressed="false">Hard</button>
+      </nav>
+    </header>
+
+    <!-- ── Board ──────────────────────────────────────────────────────── -->
+    <main id="board-container">
+      <canvas
+        id="game-canvas"
+        role="application"
+        aria-label="Hex Minesweeper board"
+        tabindex="0"
+      ></canvas>
+
+      <!-- Win / Loss overlay (cosmetic, screen-reader announced via aria-live elsewhere) -->
+      <div id="status-overlay" aria-hidden="true">
+        <h2 id="status-title"></h2>
+        <p id="status-subtitle"></p>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { Game, GAME_STATE } from './src/game.js';
+    import { Renderer } from './src/renderer.js';
+    import { InputHandler } from './src/input.js';
+
+    // ── DOM references ─────────────────────────────────────────────────
+    const canvas          = document.getElementById('game-canvas');
+    const mineCounterEl   = document.getElementById('mine-counter');
+    const timerEl         = document.getElementById('timer');
+    const resetBtn        = document.getElementById('reset-btn');
+    const statusOverlay   = document.getElementById('status-overlay');
+    const statusTitle     = document.getElementById('status-title');
+    const statusSubtitle  = document.getElementById('status-subtitle');
+    const diffBtns        = document.querySelectorAll('.diff-btn');
+
+    const faceNeutral   = document.getElementById('face-neutral');
+    const faceSurprised = document.getElementById('face-surprised');
+    const faceWon       = document.getElementById('face-won');
+    const faceLost      = document.getElementById('face-lost');
+
+    // ── State ──────────────────────────────────────────────────────────
+    let currentDifficulty = 'easy';
+    let surprised = false;
+
+    // ── Helpers ────────────────────────────────────────────────────────
+    function padNum(n, digits) {
+      return String(Math.max(0, Math.min(Math.abs(n), Math.pow(10, digits) - 1)))
+        .padStart(digits, '0');
+    }
+
+    function formatCounter(n) {
+      // Supports negative: show '-' followed by digits
+      if (n < 0) return '-' + padNum(-n, 2);
+      return padNum(n, 3);
+    }
+
+    function setFace(state, isSurprised) {
+      [faceNeutral, faceSurprised, faceWon, faceLost].forEach(f => f.classList.remove('active'));
+      if (isSurprised) {
+        faceSurprised.classList.add('active');
+        return;
+      }
+      if (state === GAME_STATE.WON)  { faceWon.classList.add('active'); return; }
+      if (state === GAME_STATE.LOST) { faceLost.classList.add('active'); return; }
+      faceNeutral.classList.add('active');
+    }
+
+    function updateHeader(game) {
+      mineCounterEl.textContent = formatCounter(game.getMineCounter());
+      timerEl.textContent = padNum(game.getTimer(), 3);
+      setFace(game.state, surprised);
+    }
+
+    function showOverlay(title, subtitle) {
+      statusTitle.textContent = title;
+      statusSubtitle.textContent = subtitle;
+      statusOverlay.classList.add('visible');
+      statusOverlay.removeAttribute('aria-hidden');
+    }
+
+    function hideOverlay() {
+      statusOverlay.classList.remove('visible');
+      statusOverlay.setAttribute('aria-hidden', 'true');
+    }
+
+    // ── Game & Renderer ────────────────────────────────────────────────
+    function onStateChange(game) {
+      updateHeader(game);
+
+      if (game.state === GAME_STATE.WON) {
+        renderer.scheduleRedraw();
+        showOverlay('You Win! 😎', `Time: ${game.getTimer()}s`);
+      } else if (game.state === GAME_STATE.LOST) {
+        renderer.scheduleRedraw();
+        showOverlay('Game Over 😵', 'Press reset to try again.');
+      } else {
+        renderer.scheduleRedraw();
+      }
+    }
+
+    let game     = new Game(currentDifficulty, onStateChange);
+    let renderer = new Renderer(canvas, game);
+    let input    = new InputHandler(canvas, game, renderer, (val) => {
+      surprised = val;
+      setFace(game.state, surprised);
+    });
+
+    // ── Resize handling ────────────────────────────────────────────────
+    function handleResize() {
+      renderer.resize();
+      renderer.draw();
+    }
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    updateHeader(game);
+
+    // ── Reset button ───────────────────────────────────────────────────
+    resetBtn.addEventListener('click', () => {
+      surprised = false;
+      hideOverlay();
+      game.reset(currentDifficulty);
+      updateHeader(game);
+      renderer.scheduleRedraw();
+    });
+
+    // ── Difficulty buttons ─────────────────────────────────────────────
+    diffBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const diff = btn.dataset.difficulty;
+        if (diff === currentDifficulty) return;
+
+        currentDifficulty = diff;
+        diffBtns.forEach(b => {
+          b.classList.toggle('selected', b === btn);
+          b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+        });
+
+        surprised = false;
+        hideOverlay();
+
+        // Recreate game + renderer + input for new difficulty
+        game     = new Game(currentDifficulty, onStateChange);
+        renderer = new Renderer(canvas, game);
+        input    = new InputHandler(canvas, game, renderer, (val) => {
+          surprised = val;
+          setFace(game.state, surprised);
+        });
+
+        handleResize();
+        updateHeader(game);
+      });
+    });
+
+    // Initial draw
+    setFace(game.state, false);
+  </script>
+</body>
+</html>
