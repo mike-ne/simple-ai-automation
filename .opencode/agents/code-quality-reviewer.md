@@ -1,6 +1,6 @@
 ---
 description: Reviews code quality and produces a dated report in docs/reports/. Analyzes SOLID principles, polymorphism, test coverage, readability, design pattern usage, and common anti-patterns.
-mode: build
+mode: all
 permission:
   edit:
     "docs/reports/*": allow
