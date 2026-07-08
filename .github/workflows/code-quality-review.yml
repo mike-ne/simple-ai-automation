@@ -26,10 +26,11 @@ jobs:
 
       - name: Run code quality reviewer agent
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         run: |
           opencode run \
             --agent code-quality-reviewer \
+            --model opencode/claude-sonnet-4-6 \
             --auto \
             "Please run the code quality review and produce the report."
 
