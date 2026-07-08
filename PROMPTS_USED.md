@@ -234,3 +234,11 @@ Please add a github action that runs the code-quality-reviewer.md agent. This gi
 
 You will need a key for opencode use for this github action. This key has already been set in github "Actions Secrets and Variables" as a "Repository Secret" named `OPENCODE_API_KEY`. 
 ```
+
+## Test Message
+
+**Mode:** build
+
+```
+test
+```

@@ -132,3 +132,11 @@ Unit tests cover:
 - `game.test.js`: state transitions, timer behavior (with fake timers), mine counter arithmetic, chord logic
 
 No E2E or browser tests (by design decision). UI validation is done manually or via the validator subagent skill.
+
+## Agents
+
+Custom OpenCode agents are defined in `.opencode/agents/` as markdown files.
+
+| Agent | File | Purpose |
+|-------|------|---------|
+| `code-quality-reviewer` | `.opencode/agents/code-quality-reviewer.md` | Read-only subagent that reviews code quality across six dimensions (metrics, SOLID, polymorphism, test coverage, readability, design patterns) and writes a dated report to `docs/reports/code_quality_YYYY-MM-DD.md`. |

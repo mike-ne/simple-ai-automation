@@ -41,33 +41,81 @@ export class InputHandler {
   _bindEvents() {
     const c = this.canvas;
 
+    // Store bound handlers so they can be removed later by destroy()
+    this._bound = {
+      mousedown:   this._onMouseDown.bind(this),
+      mouseup:     this._onMouseUp.bind(this),
+      mouseleave:  this._onMouseLeave.bind(this),
+      mousemove:   this._onMouseMove.bind(this),
+      contextmenu: (e) => e.preventDefault(),
+      touchstart:  this._onTouchStart.bind(this),
+      touchend:    this._onTouchEnd.bind(this),
+      touchmove:   this._onTouchMove.bind(this),
+      touchcancel: this._onTouchCancel.bind(this),
+      keydown:     this._onKeyDown.bind(this),
+      focus: () => {
+        this._keyboardFocused = true;
+        // Initialize keyboard cursor to origin if not set
+        if (!this.renderer._focusedCell) {
+          const cell = this.game.board.getCell(0, 0);
+          if (cell) this.renderer.setFocusedCell({ q: 0, r: 0 });
+        }
+      },
+      blur: () => {
+        this._keyboardFocused = false;
+        this.renderer.setFocusedCell(null);
+      },
+    };
+
     // Mouse
-    c.addEventListener('mousedown', this._onMouseDown.bind(this));
-    c.addEventListener('mouseup', this._onMouseUp.bind(this));
-    c.addEventListener('mouseleave', this._onMouseLeave.bind(this));
-    c.addEventListener('mousemove', this._onMouseMove.bind(this));
-    c.addEventListener('contextmenu', (e) => e.preventDefault());
+    c.addEventListener('mousedown',   this._bound.mousedown);
+    c.addEventListener('mouseup',     this._bound.mouseup);
+    c.addEventListener('mouseleave',  this._bound.mouseleave);
+    c.addEventListener('mousemove',   this._bound.mousemove);
+    c.addEventListener('contextmenu', this._bound.contextmenu);
 
     // Touch
-    c.addEventListener('touchstart', this._onTouchStart.bind(this), { passive: false });
-    c.addEventListener('touchend', this._onTouchEnd.bind(this), { passive: false });
-    c.addEventListener('touchmove', this._onTouchMove.bind(this), { passive: false });
-    c.addEventListener('touchcancel', this._onTouchCancel.bind(this));
+    c.addEventListener('touchstart',  this._bound.touchstart,  { passive: false });
+    c.addEventListener('touchend',    this._bound.touchend,    { passive: false });
+    c.addEventListener('touchmove',   this._bound.touchmove,   { passive: false });
+    c.addEventListener('touchcancel', this._bound.touchcancel);
 
     // Keyboard
-    c.addEventListener('keydown', this._onKeyDown.bind(this));
-    c.addEventListener('focus', () => {
-      this._keyboardFocused = true;
-      // Initialize keyboard cursor to origin if not set
-      if (!this.renderer._focusedCell) {
-        const cell = this.game.board.getCell(0, 0);
-        if (cell) this.renderer.setFocusedCell({ q: 0, r: 0 });
-      }
-    });
-    c.addEventListener('blur', () => {
-      this._keyboardFocused = false;
-      this.renderer.setFocusedCell(null);
-    });
+    c.addEventListener('keydown', this._bound.keydown);
+    c.addEventListener('focus',   this._bound.focus);
+    c.addEventListener('blur',    this._bound.blur);
+  }
+
+  /**
+   * Removes all canvas event listeners attached by this InputHandler.
+   * Must be called before discarding an instance to avoid ghost handlers.
+   */
+  destroy() {
+    const c = this.canvas;
+    if (!this._bound) return;
+
+    c.removeEventListener('mousedown',   this._bound.mousedown);
+    c.removeEventListener('mouseup',     this._bound.mouseup);
+    c.removeEventListener('mouseleave',  this._bound.mouseleave);
+    c.removeEventListener('mousemove',   this._bound.mousemove);
+    c.removeEventListener('contextmenu', this._bound.contextmenu);
+
+    c.removeEventListener('touchstart',  this._bound.touchstart);
+    c.removeEventListener('touchend',    this._bound.touchend);
+    c.removeEventListener('touchmove',   this._bound.touchmove);
+    c.removeEventListener('touchcancel', this._bound.touchcancel);
+
+    c.removeEventListener('keydown', this._bound.keydown);
+    c.removeEventListener('focus',   this._bound.focus);
+    c.removeEventListener('blur',    this._bound.blur);
+
+    // Cancel any in-flight long-press timer
+    if (this._longPressTimer) {
+      clearTimeout(this._longPressTimer);
+      this._longPressTimer = null;
+    }
+
+    this._bound = null;
   }
 
   // ─────────────────────────────── Hit testing ────────────────────────────────

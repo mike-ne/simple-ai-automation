@@ -7,6 +7,7 @@ This file tracks known bugs found during validation. Each entry includes the rel
 ## BUG-1: Timer Interval Leak on Mid-Game Difficulty Switch
 
 **Severity:** High
+**Status:** Open
 **Related AC:** AC-11.2, AC-11.3
 **Found by:** Validator subagent (automated smoke test)
 
@@ -39,6 +40,7 @@ game = new Game(currentDifficulty, onStateChange);
 ## BUG-2: Mobile Touch Target Size Below 44×44px Minimum (AC-13.1)
 
 **Severity:** Medium
+**Status:** Open
 **Related AC:** AC-13.1
 **Found by:** Validator subagent (code review + viewport analysis)
 
@@ -69,3 +71,40 @@ Options (pick one or combine):
 1. Add `overflow-x: auto` on the board container and enforce a minimum board width so cells never shrink below 44px.
 2. Clamp the computed cell size to a minimum (e.g., `size = Math.max(computedSize, 24)`) and allow the board to scroll horizontally when it overflows the viewport.
 3. Document the minimum supported viewport width in `README.md` if full mobile support is descoped.
+
+---
+
+## BUG-3: Old Game State Persists Underneath New Game on Difficulty Switch
+
+**Severity:** High
+**Status:** Fixed
+**Related AC:** AC-6.1, AC-6.2
+**Found by:** Manual testing (user report)
+
+### Description
+
+When the player changes difficulty, the previous `Game` instance is not fully torn down. The old game's board state (including mine positions) remains active beneath the new game's rendering. As a result, a click on a cell that appears safe in the new game can trigger a loss because the underlying old game object registers the click against its own mine layout — which may have a mine at that coordinate.
+
+### Steps to Reproduce
+
+1. Start the app and select any difficulty (e.g. Easy).
+2. Make a few moves so a game is in progress.
+3. Without resetting, click a different difficulty button (e.g. Hard).
+4. Click cells on the new board.
+5. Observe: it is possible to lose on a cell that shows no mine in the new game's visible state.
+
+### Expected Behavior
+
+Selecting a new difficulty should completely destroy the previous game instance and create a fresh one. No state, event listeners, or data from the old game should persist or influence the new game.
+
+### Recommended Fix
+
+When the difficulty-switch handler fires, fully reset all game state before constructing a new `Game` instance. This should include:
+
+- Clearing any active timers (see also BUG-1).
+- Removing or replacing all event listeners attached by the old game.
+- Ensuring the new `Game` instance generates a fresh board with its own mine positions, with no reference to the old instance remaining.
+
+### Fix Applied
+
+Added a `destroy()` method to `InputHandler` (`src/input.js`) that removes all canvas event listeners. Bound handler references are now stored as instance properties (`this._bound`) so they can be passed to `removeEventListener`. The difficulty-switch handler in `index.html` now calls `input.destroy()` and `game._clearTimer()` before replacing both instances, fully severing the old game from the canvas.

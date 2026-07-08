@@ -187,6 +187,14 @@
         surprised = false;
         hideOverlay();
 
+        // Tear down the old instances before replacing them.
+        // input.destroy() removes all canvas event listeners so the old
+        // InputHandler (which still references the old game's mine layout)
+        // can no longer intercept clicks and cause ghost-game losses.
+        // game._clearTimer() stops any running interval on the old game.
+        input.destroy();
+        game._clearTimer();
+
         // Recreate game + renderer + input for new difficulty
         game     = new Game(currentDifficulty, onStateChange);
         renderer = new Renderer(canvas, game);
