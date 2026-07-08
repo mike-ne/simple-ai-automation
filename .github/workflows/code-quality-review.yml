@@ -1,0 +1,46 @@
+name: Code Quality Review
+
+on:
+  workflow_dispatch:
+
+jobs:
+  code-quality-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Install opencode
+        run: npm install -g opencode-ai@1.17.15
+
+      - name: Run code quality reviewer agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          opencode run \
+            --agent code-quality-reviewer \
+            --auto \
+            "Please run the code quality review and produce the report."
+
+      - name: Commit and push report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/reports/
+          if git diff --cached --quiet; then
+            echo "No report was generated, nothing to commit."
+          else
+            git commit -m "chore: add code quality report $(date +%Y-%m-%d)"
+            git push
+          fi

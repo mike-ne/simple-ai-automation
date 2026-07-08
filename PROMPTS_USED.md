@@ -167,3 +167,70 @@ Can you add details about these two bugs to docs/bugs.md so we can fix them on a
 ```
 It looks like you failed to write information about our two bugs to docs/bugs.md. Can you try again?
 ```
+
+## Add .gitignore
+
+**Mode:** build
+
+```
+Please add an appropriate .gitignore for this project.
+```
+
+## Log Difficulty Switch Ghost Game Bug
+
+**Mode:** build
+
+```
+I have found another bug. Can you add this bug to docs/bugs.md in the same format as the other bugs in there? If my description does not suffice for a given section in the description of the bug, please add a placeholder question and I can fill it out manually.
+
+The bug is this:
+When you chage difficulty levels, it seems the old game is still running under the new one. You can lose by clicking on a cell that does not have a bomb in the new game, but does in the old one underneath.
+
+I suggest that all game state be reset and recreated when the user selects a new difficulty.
+```
+
+## Fix BUG-3 Difficulty Switch Ghost Game
+
+**Mode:** build
+
+```
+Please work on fixing BUG #3 in docs/bugs.md
+```
+
+## Mark BUG-3 as Fixed in bugs.md
+
+**Mode:** build
+
+```
+Can you mark the bug in docs/bugs.md as fixed. Feel free to add a "status" field if need be so all bugs have a status.
+```
+
+## Add Anti-Pattern Detection to Code Quality Reviewer Agent
+
+**Mode:** build
+
+```
+Please add one thing to the code-quality-reviewer.md agent. It should also look for common anti-patterns in the code.
+```
+
+## Create Code Quality Review Agent
+
+**Mode:** build
+
+```
+Please create a new agent. This agent shuold be responsible for reviewing code quality, and producing a report. The report can go in docs/reports/code_quality_YYYY-MM-DD.md where YYYY is the curent year, MM is the left padded current month and DD is the left padded day of the month.
+
+You should look at standard code quality metrics. You shuold also determine if the code is following the SOLID principles. You should look for "as a" relationship polymorphism where appropriate. You should determine if we have sufficient test code coverage. You should try to descern whether or not a human would be able to read the code. You should determine if the code uses proper design patterns (there shuold not be an overuse of design patterns, but where one is appropriate it could be suggested).
+
+Do not copy any information about the project itself into the agent definition. Instruct the agent to look for architecture related documentation and to review the code itself.
+```
+
+## Add GitHub Action for Code Quality Reviewer
+
+**Mode:** build
+
+```
+Please add a github action that runs the code-quality-reviewer.md agent. This github action shuold be runnable by manual dispatch. You can use the gh command line tool to verify that the action is working. Please iterate on this until it is verified working. 
+
+You will need a key for opencode use for this github action. This key has already been set in github "Actions Secrets and Variables" as a "Repository Secret" named `OPENCODE_API_KEY`. 
+```
