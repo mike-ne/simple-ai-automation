@@ -242,3 +242,11 @@ You will need a key for opencode use for this github action. This key has alread
 ```
 test
 ```
+
+## Add Secret Scanning to Code Quality Reviewer
+
+**Mode:** build
+
+```
+Please add one more thing to our code-quality-reviewer.md. It is ESSENTIAL that this reviewer agent make sure there are no secure keys/passwords/tokens checked in to the codebase in documents, code or any other file.
+```

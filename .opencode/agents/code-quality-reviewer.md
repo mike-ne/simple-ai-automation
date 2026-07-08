@@ -1,5 +1,5 @@
 ---
-description: Reviews code quality and produces a dated report in docs/reports/. Analyzes SOLID principles, polymorphism, test coverage, readability, design pattern usage, and common anti-patterns.
+description: Reviews code quality and produces a dated report in docs/reports/. Analyzes SOLID principles, polymorphism, test coverage, readability, design pattern usage, common anti-patterns, and secret/credential leakage.
 mode: all
 permission:
   edit:
@@ -134,7 +134,30 @@ Anti-patterns to look for (non-exhaustive):
 
 If no significant anti-patterns are found, state that clearly.
 
-### 4.7 Design patterns
+### 4.7 Secrets and credential leakage
+
+**This check is mandatory and must be treated as a critical finding if anything is discovered.**
+
+Scan every file in the repository — source code, configuration, documentation, environment files, scripts, CI/CD definitions, and any other file type — for hardcoded secrets, credentials, or other sensitive values. Do not limit the scan to source files; secrets are frequently committed in non-code files.
+
+Items to look for (non-exhaustive):
+
+- **API keys and tokens** — any value that matches common key patterns (e.g., `sk-...`, `ghp_...`, `AIza...`, `AKIA...`, UUID-shaped tokens, long random-looking strings assigned to variables whose names suggest authentication)
+- **Passwords** — values assigned to variables or keys named `password`, `passwd`, `secret`, `credential`, `pass`, or similar
+- **Private keys and certificates** — PEM blocks (`-----BEGIN ... KEY-----`), base64-encoded key material
+- **Connection strings** — database URLs or DSNs containing embedded usernames and passwords (e.g., `postgresql://user:pass@host/db`)
+- **OAuth / JWT secrets** — values assigned to `client_secret`, `jwt_secret`, `signing_key`, or similar
+- **Environment files committed to the repo** — `.env`, `.env.local`, `.env.production`, or any file whose name suggests it contains environment-specific configuration; check whether they are excluded by `.gitignore`
+- **Tokens in CI/CD configuration** — values hardcoded in GitHub Actions workflows or other pipeline files instead of being read from secrets
+
+For each potential secret found:
+- Record the file path and line number
+- Describe what it appears to be (e.g., "looks like an AWS access key")
+- Rate the severity: **Critical** (clearly a real credential), **High** (likely a real credential), or **Low** (pattern match but probably a placeholder/example)
+
+If no secrets or credentials are found, state that clearly.
+
+### 4.8 Design patterns
 
 Identify patterns that are already in use and assess whether they are used appropriately. Then identify any places where a well-known pattern would improve the code without over-engineering it.
 
@@ -221,7 +244,15 @@ A brief (3–5 sentence) overall assessment of the codebase quality.
 
 ---
 
-## 7. Design Patterns
+## 7. Secrets and Credential Leakage
+
+**Rating:** Pass / Fail
+
+[List every finding with file:line, a description of the suspected secret type, and a severity rating (Critical / High / Low). If nothing is found, state "No secrets or credentials detected."]
+
+---
+
+## 8. Design Patterns
 
 ### Patterns in Use
 [List patterns found and assess their appropriateness]
@@ -231,7 +262,7 @@ A brief (3–5 sentence) overall assessment of the codebase quality.
 
 ---
 
-## 8. Priority Recommendations
+## 9. Priority Recommendations
 
 A numbered list of the most impactful improvements, ordered by priority. Each item must include:
 - What the issue is
