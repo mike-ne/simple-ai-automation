@@ -258,3 +258,29 @@ Please add one more thing to our code-quality-reviewer.md. It is ESSENTIAL that 
 ```
 When a player loses a game, a dialog box pops up that says "Game Over Press reset to try again." However, there is no reset. Could a button be added to this popup? If that is difficult, change the text to read "select a difficulty to try again" and when the user selects a difficulty, it should start a new game.
 ```
+
+## Make Code Quality Reviewer Agent More Portable
+
+**Mode:** build
+
+```
+Please change the code-quality-reviewer agent so that it is more portable. Make sure this agent does not refer to anything specific to this project, but instead offer general guidance. As an example:
+
+Instead of:
+- `docs/architecture.md` — module responsibilities, data flow, technology choices, testing strategy
+- `docs/product.md` — product feature context
+Try this:
+Look for architecture related documentation and product specifications documents. These may be listed in the AGENTS.md or README.md files.
+
+And Instead of:
+- `src/` — application source modules
+- `tests/` — unit test files
+- `index.html` — bootstrap and wiring code
+- `package.json` — declared dependencies and scripts
+Try this:
+Make a map of the source code layout, but do not add this to any particular file. We shuold not be adding or editing any files in the repository other than our report.
+
+The "Run the tests" section should mention that README.md and AGENTS.md will probably show how to run tests. If not, search through the source code to see if you can figure it out.
+
+Use these examples to ensure that no references to docuemtation or files are present in our code-quality-reviewer agent. The idea is to be able to copy this agent to other codebases and have it immediately work. 
+```
