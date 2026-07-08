@@ -250,3 +250,11 @@ test
 ```
 Please add one more thing to our code-quality-reviewer.md. It is ESSENTIAL that this reviewer agent make sure there are no secure keys/passwords/tokens checked in to the codebase in documents, code or any other file.
 ```
+
+## Fix Game Over Dialog - Add Restart Button or Update Text
+
+**Mode:** build
+
+```
+When a player loses a game, a dialog box pops up that says "Game Over Press reset to try again." However, there is no reset. Could a button be added to this popup? If that is difficult, change the text to read "select a difficulty to try again" and when the user selects a difficulty, it should start a new game.
+```

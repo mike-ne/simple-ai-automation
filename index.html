@@ -140,7 +140,7 @@
         showOverlay('You Win! 😎', `Time: ${game.getTimer()}s`);
       } else if (game.state === GAME_STATE.LOST) {
         renderer.scheduleRedraw();
-        showOverlay('Game Over 😵', 'Press reset to try again.');
+        showOverlay('Game Over 😵', 'Select a difficulty to try again.');
       } else {
         renderer.scheduleRedraw();
       }
@@ -176,7 +176,8 @@
     diffBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const diff = btn.dataset.difficulty;
-        if (diff === currentDifficulty) return;
+        const overlayVisible = statusOverlay.classList.contains('visible');
+        if (diff === currentDifficulty && !overlayVisible) return;
 
         currentDifficulty = diff;
         diffBtns.forEach(b => {
